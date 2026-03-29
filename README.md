@@ -2,6 +2,8 @@
 
 > A modern, AI-powered personal finance and retirement planning platform built for the Indian fintech context.
 
+## Video Demonstration
+https://drive.google.com/file/d/1byFdtJ3fFMj0AL6yGy-c6UeHpgZc66aF/view?usp=sharing
 ---
 
 ##  Problem Statement
