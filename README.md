@@ -26,7 +26,7 @@ FinTrack is a **personal finance aggregation dashboard** that:
 4. **Plans retirement** — projects retirement corpus, identifies optimal savings levers, and visualizes the impact of small changes on your retirement age
 
 ---
-## ✨ Features
+## Features
 
 | Feature | Description |
 |---------|-------------|
@@ -54,7 +54,7 @@ FinTrack is a **personal finance aggregation dashboard** that:
 
 ---
 
-## 🚀 Setup Instructions
+## Setup Instructions
 
 ### Prerequisites
 
@@ -92,7 +92,7 @@ Open `http://localhost:5000` in your browser.
 
 ---
 
-## 🎬 Demo Instructions
+## Demo Instructions
 
 Follow this flow to experience all features:
 
