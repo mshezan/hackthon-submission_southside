@@ -217,12 +217,27 @@
                                 Manage
                             </button>
                             <div id="manage-menu-{{ account.id }}"
-                                class="hidden absolute right-0 top-full mt-1.5 z-50 min-w-[160px] bg-[#1c1c1e] border border-white/[0.10] rounded-xl shadow-2xl shadow-black/60 overflow-hidden">
+                                class="hidden absolute right-0 top-full mt-1.5 z-50 min-w-[180px] bg-[#1c1c1e] border border-white/[0.10] rounded-xl shadow-2xl shadow-black/60 overflow-hidden">
                                 <button type="button"
                                     onclick="removeAccount({{ account.id }}, '{{ account.account_nickname }}')"
-                                    class="w-full text-left px-4 py-2.5 text-[12px] text-red-400 hover:bg-white/[0.05] hover:text-red-300 transition-colors">
+                                    class="remove-btn w-full text-left px-4 py-2.5 text-[12px] text-red-400 hover:bg-white/[0.05] hover:text-red-300 transition-colors">
                                     Remove account
                                 </button>
+                                <div class="confirm-row hidden px-3 py-2.5 space-y-2">
+                                    <p class="text-[11px] text-zinc-400 leading-tight">Delete account &amp; all transactions?</p>
+                                    <div class="flex gap-2">
+                                        <button type="button"
+                                            onclick="removeAccountConfirmed({{ account.id }}, '{{ account.account_nickname }}')"
+                                            class="flex-1 rounded-lg bg-red-500/20 border border-red-500/30 px-2 py-1.5 text-[11px] font-semibold text-red-300 hover:bg-red-500/30 transition-colors">
+                                            Yes, remove
+                                        </button>
+                                        <button type="button"
+                                            onclick="removeAccountCancel({{ account.id }})"
+                                            class="flex-1 rounded-lg bg-white/[0.06] border border-white/[0.08] px-2 py-1.5 text-[11px] font-semibold text-zinc-400 hover:bg-white/[0.1] transition-colors">
+                                            Cancel
+                                        </button>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -257,6 +272,10 @@
 
 <script>
 function toggleManageMenu(id) {
+    // Close all other menus first
+    document.querySelectorAll('[id^="manage-menu-"]').forEach(function(m) {
+        if (m.id !== 'manage-menu-' + id) m.classList.add('hidden');
+    });
     var menu = document.getElementById('manage-menu-' + id);
     if (!menu) return;
     menu.classList.toggle('hidden');
@@ -268,12 +287,33 @@ document.addEventListener('click', function(e) {
         var wrap = menu.closest('[id^="manage-wrap-"]');
         if (wrap && !wrap.contains(e.target)) {
             menu.classList.add('hidden');
+            // Reset any confirm states
+            var confirmRow = menu.querySelector('.confirm-row');
+            var removeBtn  = menu.querySelector('.remove-btn');
+            if (confirmRow) confirmRow.classList.add('hidden');
+            if (removeBtn)  removeBtn.classList.remove('hidden');
         }
     });
 });
 
 function removeAccount(id, nickname) {
-    if (!confirm('Remove "' + nickname + '"?\n\nThis will also delete all its transactions. This cannot be undone.')) return;
+    var menu       = document.getElementById('manage-menu-' + id);
+    var removeBtn  = menu ? menu.querySelector('.remove-btn')  : null;
+    var confirmRow = menu ? menu.querySelector('.confirm-row') : null;
+    if (!removeBtn || !confirmRow) return;
+
+    // Show inline confirmation instead of browser dialog
+    removeBtn.classList.add('hidden');
+    confirmRow.classList.remove('hidden');
+}
+
+function removeAccountConfirmed(id, nickname) {
+    var wrap = document.getElementById('manage-wrap-' + id);
+    var card = wrap ? wrap.closest('.rounded-2xl') : null;
+
+    // Show loading state
+    var menu = document.getElementById('manage-menu-' + id);
+    if (menu) menu.innerHTML = '<p class="px-4 py-2.5 text-[11px] text-zinc-500">Removing…</p>';
 
     fetch('/api/linked-accounts/' + id + '/delete', {
         method: 'POST',
@@ -283,29 +323,37 @@ function removeAccount(id, nickname) {
     .then(function(res) { return res.json(); })
     .then(function(data) {
         if (data.status === 'success') {
-            // Remove card from DOM without full reload
-            var wrap = document.getElementById('manage-wrap-' + id);
-            var card = wrap ? wrap.closest('.rounded-2xl') : null;
             if (card) {
+                card.style.transition = 'opacity 0.25s, transform 0.25s';
                 card.style.opacity = '0';
-                card.style.transition = 'opacity 0.2s';
+                card.style.transform = 'scale(0.97)';
                 setTimeout(function() {
                     card.remove();
-                    // If no cards left, reload to show empty state
                     if (!document.querySelector('[id^="manage-wrap-"]')) {
                         window.location.reload();
                     }
-                }, 250);
+                }, 260);
             } else {
                 window.location.reload();
             }
         } else {
             alert('Error: ' + (data.message || 'Could not remove account'));
+            window.location.reload();
         }
     })
     .catch(function() {
         alert('Network error. Please try again.');
+        window.location.reload();
     });
+}
+
+function removeAccountCancel(id) {
+    var menu = document.getElementById('manage-menu-' + id);
+    if (!menu) return;
+    var confirmRow = menu.querySelector('.confirm-row');
+    var removeBtn  = menu.querySelector('.remove-btn');
+    if (confirmRow) confirmRow.classList.add('hidden');
+    if (removeBtn)  removeBtn.classList.remove('hidden');
 }
 </script>
 {% endblock %}
